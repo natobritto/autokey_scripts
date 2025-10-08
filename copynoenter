@@ -1,0 +1,9 @@
+import re
+import subprocess
+
+# Get clipboard text
+text = clipboard.get_clipboard()
+cleaned = text.replace("\r", "").replace("\n", " ")
+
+keyboard.send_keys(cleaned)
+
