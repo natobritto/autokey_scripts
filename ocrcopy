@@ -1,0 +1,100 @@
+# AutoKey script: OCR selection (X11) using maim+slop (preferred) with scrot fallback
+# Ubuntu 22.04, XDG_SESSION_TYPE=x11
+#
+# deps: tesseract-ocr imagemagick maim slop xclip (fallback: scrot)
+#   sudo apt install -y tesseract-ocr imagemagick maim slop xclip scrot
+# (Optional languages)
+#   sudo apt install -y tesseract-ocr-eng tesseract-ocr-por
+# Change LANGS for your languages: e.g. "eng", "por", "eng+por"
+# Set PSM to 6 for uniform text blocks if needed.
+
+import os, subprocess, tempfile, shutil, time
+
+LANGS       = "eng"
+PSM         = "3"
+ENLARGE     = "300%"
+MAX_RETRIES = 3
+RETRY_SLEEP = 0.12
+
+def have(cmd): return shutil.which(cmd) is not None
+def good_file(p): return os.path.exists(p) and os.path.getsize(p) > 0
+def notify(title, body):
+    try: subprocess.Popen(["notify-send", title, body])
+    except Exception: pass
+def run(cmd): return subprocess.run(cmd, shell=True, check=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+def capture_maim(path_png):
+    if not (have("maim") and have("slop")):
+        return None
+    # slop prints geometry to stdout (e.g., 100x50+200+300)
+    for i in range(MAX_RETRIES):
+        r = subprocess.run("slop -f '%wx%h+%x+%y'", shell=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        geo = r.stdout.decode().strip()
+        if r.returncode != 0:
+            return False  # user canceled (Esc) or closed
+        if not geo or geo.startswith("0x0"):
+            time.sleep(RETRY_SLEEP); continue
+        try:
+            run(f'maim -g "{geo}" "{path_png}"')
+        except subprocess.CalledProcessError:
+            time.sleep(RETRY_SLEEP); continue
+        if good_file(path_png): return True
+        time.sleep(RETRY_SLEEP)
+    return None
+
+def capture_scrot(path_png):
+    if not have("scrot"): return None
+    for i in range(MAX_RETRIES):
+        try:
+            run(f'scrot -s "{path_png}" -q 100')
+        except subprocess.CalledProcessError:
+            return False  # user cancel is nonzero
+        if good_file(path_png): return True
+        time.sleep(RETRY_SLEEP)
+    return None
+
+def ocr_image(path_png):
+    convert = "convert" if have("convert") else None
+    if not convert: raise RuntimeError("Need ImageMagick (convert).")
+    conv = (f'{convert} "{path_png}" -colorspace Gray -units PixelsPerInch -density 300 '
+            f'-resize {ENLARGE} -filter Cubic -unsharp 0x1.0 -strip -')
+    tess = f'tesseract stdin stdout -l {LANGS} --psm {PSM}'
+    proc = subprocess.Popen(conv, shell=True, stdout=subprocess.PIPE)
+    out  = subprocess.run(tess, shell=True, check=True, input=proc.stdout.read(),
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    text = out.stdout.decode("utf-8", errors="replace").replace("\x0c", "").strip()
+    return text
+
+try:
+    with tempfile.TemporaryDirectory() as tmpd:
+        img = os.path.join(tmpd, "sel.png")
+
+        # X11 order: maim+slop → scrot
+        for method in (capture_maim, capture_scrot):
+            res = method(img)
+            if res is True: break
+            if res is False:
+                notify("OCR", "Selection canceled.")
+                raise SystemExit(0)
+        else:
+            raise RuntimeError("No selection captured. Install maim+slop or scrot.")
+
+        if not good_file(img):
+            notify("OCR", "No image captured.")
+            raise SystemExit(0)
+
+        text = ocr_image(img)
+        if not text:
+            notify("OCR", "No text detected.")
+        else:
+            clipboard.fill_clipboard(text)
+            notify("OCR", f"Copied {len(text)} characters to clipboard.")
+            # keyboard.paste_clipboard()  # <- optional auto-paste
+
+except subprocess.CalledProcessError as e:
+    msg = (e.stderr or b"").decode(errors="replace")
+    notify("OCR error", msg or "Command failed.")
+except Exception as e:
+    notify("OCR error", str(e))
