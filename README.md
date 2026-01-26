@@ -13,5 +13,5 @@ Your life will be happier after this.
 
 |Name|Function|Shortcut suggested|
 |-|-|-|
-|copynoenter|Pastes text like CTRL+V but without new lines.|CTRL+D|
-|ocrcopy|Screenshot CTRL+C: performs OCR to extract pastable image text.|CTRL+ALT+C|
+|copynoenter|Pastes text like CTRL+V but without new lines.|CTRL+SHIFT+D|
+|ocrcopy|Screenshot CTRL+C: performs OCR to extract pastable image text.|CTRL+SHIFT+C|
