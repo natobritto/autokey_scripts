@@ -5,7 +5,7 @@ Your life will be happier after this.
 
 ## How to use:
 
-1. Install autokey: `sudo apt install autokey-qt`
+1. Install deps calling: `sudo install_deps.sh`
 2. Paste each script in autokey.
 3. Set appropriate hotkey binding for custom shortcut.
 
