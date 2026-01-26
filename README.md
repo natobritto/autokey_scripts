@@ -1,9 +1,17 @@
 # autokey_scripts
 
 My delicious set of shortcuts for ubuntu power usage
+Your life will be happier after this.
 
-Paste these scripts with appropriate hotkey binding on linux program called Autokey for custom shortcuts, and your life will be happier.
+## How to use:
 
----
+1. Install autokey: `sudo apt install autokey-qt`
+2. Paste each script in autokey.
+3. Set appropriate hotkey binding for custom shortcut.
 
-<ctrl>+<shift>+d = copynoenter
+## The scripts:
+
+|Name|Function|Shortcut suggested|
+|-|-|-|
+|copynoenter|Pastes text like CTRL+V but without new lines.|CTRL+D|
+|ocrcopy|Screenshot CTRL+C: performs OCR to extract pastable image text.|CTRL+ALT+C|
