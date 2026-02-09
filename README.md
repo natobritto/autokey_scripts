@@ -15,3 +15,7 @@ Your life will be happier after this.
 |-|-|-|
 |copynoenter|Pastes text like CTRL+V but without new lines.|CTRL+SHIFT+D|
 |ocrcopy|Screenshot CTRL+C: performs OCR to extract pastable image text.|ALT+C|
+
+## Future implementations:
+
+- A shortcut script that can copy text from a page and already copies with url: [<copied text>](<url>)
