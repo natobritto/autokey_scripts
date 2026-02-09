@@ -18,4 +18,4 @@ Your life will be happier after this.
 
 ## Future implementations:
 
-- A shortcut script that can copy text from a page and already copies with url: [<copied text>](<url>)
+- A shortcut script that can copy text from a page and already copies with url: `[<copied text>](<url>)`
